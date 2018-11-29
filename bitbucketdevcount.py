@@ -8,12 +8,14 @@ bb_default_username = ''
 bb_default_password = ''
 bb_default_account = ''
 
-num_days = 800
+num_days = 90
 api_count = 0
 all_repos = []
 
 MAX_API_CALLS_BEFORE_RATE_SLEEP = 950  # BitBucket.org has a limit of 1000 API calls per hour. Using 950 to be a on the safe side
 API_SLEEP_TIME_SECONDS = 3900  # API_SLEEP_TIME_SECONDS = 3900 seconds = 1 hour + 5 minutes (extra 5 minutes to be safe)
+
+now_date = datetime.datetime.now()
 
 
 def parse_command_line_args():
@@ -94,7 +96,6 @@ def get_commits_metadata(get_commits_api_url):
         str_commit_date_date_only = str_raw_commit_date.split('T')[0]
         commit_date = datetime.datetime.strptime(str_commit_date_date_only, '%Y-%m-%d')
 
-        now_date = datetime.datetime.now()
         time_span = now_date - commit_date
 
         if time_span.days < num_days:
@@ -115,8 +116,6 @@ bb_account = args.account
 
 initial_repos_api_url = 'https://api.bitbucket.org/2.0/repositories/%s/' % bb_account
 
-# Use this to get basically all public repos
-initial_repos_api_url = 'https://api.bitbucket.org/2.0/repositories'
 
 next_get_repos_api_url = initial_repos_api_url
 
