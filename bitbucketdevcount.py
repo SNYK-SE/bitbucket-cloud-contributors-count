@@ -20,9 +20,10 @@ now_date = datetime.datetime.now()
 
 def parse_command_line_args():
     parser = argparse.ArgumentParser(description="Count developers in BitBucket.org active in the last 90 days")
-    parser.add_argument('--user', type=str, help='BitBucket.org username')
-    parser.add_argument('--password', type=str, help='BitBucket.org password')
-    parser.add_argument('--account', type=str, help='BitBucket.org account')
+    parser.add_argument('--user', type=str, help='Bitbucket.org username')
+    parser.add_argument('--password', type=str, help='Bitbucket.org password')
+    parser.add_argument('--account', type=str, help='Bitbucket.org account')
+    parser.add_argument('--repo-name', type=str, help='Bitbucket.org repo name')
 
     args = parser.parse_args()
 
@@ -63,6 +64,21 @@ def get_bitbucket_api_return_json_with_api_rate_limiting(full_api_url):
     obj_json_response = get_bitbucket_api_return_json(full_api_url)
     api_count += 1
     return obj_json_response
+
+
+def grab_metadata_from_single_repo(user_name, repo_name):
+    single_repos_api_url = 'https://api.bitbucket.org/2.0/repositories/%s/%s' % (user_name, repo_name)
+    repos_json_obj = get_bitbucket_api_return_json_with_api_rate_limiting(single_repos_api_url)
+
+    repo_name = repos_json_obj['full_name']
+    commits_url = repos_json_obj['links']['commits']['href']
+
+    repo_info = {
+        'repo_name': repo_name,
+        'commits_url': commits_url
+    }
+
+    return repo_info
 
 
 def grab_metadata_from_repos(get_repos_api_url):
@@ -113,16 +129,23 @@ args = parse_command_line_args()
 bb_username = args.user
 bb_password = args.password
 bb_account = args.account
+args_repo_name = args.repo_name
 
-initial_repos_api_url = 'https://api.bitbucket.org/2.0/repositories/%s/' % bb_account
+if args_repo_name:
+    print('Using only repos with the name: %s\n' % args_repo_name)
 
-
-next_get_repos_api_url = initial_repos_api_url
-
-while True:
-    next_get_repos_api_url = grab_metadata_from_repos(next_get_repos_api_url)
-    if next_get_repos_api_url is None:
-        break
+if args_repo_name:
+    # Just get a single repo
+    single_repo_info = grab_metadata_from_single_repo(bb_account, args_repo_name)
+    all_repos.append(single_repo_info)
+else:
+    # Gets all repos
+    initial_repos_api_url = 'https://api.bitbucket.org/2.0/repositories/%s/' % bb_account
+    next_get_repos_api_url = initial_repos_api_url
+    while True:
+        next_get_repos_api_url = grab_metadata_from_repos(next_get_repos_api_url)
+        if next_get_repos_api_url is None:
+            break
 
 for next_repo in all_repos:
     # print('%s : %s' % (next_repo['repo_name'], next_repo['commits_url']))
