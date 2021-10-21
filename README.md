@@ -1,5 +1,6 @@
 # bitbucket-cloud-contributors-count
 
+## **This tool is deprecated, please refer to this [Tool](https://github.com/snyk-tech-services/snyk-scm-contributors-count) instaed**
 Count contributing developers in a bitbucket.org account in the last 90 days.
 
 Prerequisites: This script requires Python 3. If you have only Python 3 installed, you may need to modify commands below to use `python` command instead of `python3`.
